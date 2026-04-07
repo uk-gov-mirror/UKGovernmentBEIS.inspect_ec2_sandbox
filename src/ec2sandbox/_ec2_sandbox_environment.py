@@ -1,8 +1,7 @@
 import errno
 import os
-import random
+import secrets
 import shlex
-import string
 import sys
 from datetime import datetime
 from logging import getLogger
@@ -720,6 +719,6 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
     def _s3_key_prefix(
         self, operation: Literal["read_file", "write_file", "exec"]
     ) -> str:
-        rand = "".join(random.choices(string.ascii_letters + string.digits, k=8))
+        rand = secrets.token_urlsafe(8)
         timestamp = datetime.now().isoformat()
         return f"{self.s3_key_prefix}{operation}/{timestamp}-{rand}/"
