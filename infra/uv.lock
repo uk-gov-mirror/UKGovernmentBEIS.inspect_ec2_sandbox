@@ -1,6 +1,10 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
+
+[options]
+exclude-newer = "2026-04-09T15:05:45.685822727Z"
+exclude-newer-span = "P1W"
 
 [[package]]
 name = "attrs"

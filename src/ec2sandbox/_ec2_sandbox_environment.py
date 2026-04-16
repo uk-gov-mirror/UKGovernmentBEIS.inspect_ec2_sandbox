@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 from logging import getLogger
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, ClassVar, Dict, List, Union
 
 import boto3
 from botocore.exceptions import ClientError, WaiterError
@@ -33,9 +33,9 @@ from ._unpack_tags import convert_tags_for_aws_interface
 
 
 @retry(stop=stop_after_attempt(20), wait=wait_fixed(30))
-def _wait_for_ssm(instance_id, region):
-    ssm = boto3.client("ssm", region_name=region)
-    resp = ssm.describe_instance_information(
+def _wait_for_ssm(instance_id: str, ssm_client: Any) -> bool:
+    """Wait for SSM agent to come online on the given instance."""
+    resp = ssm_client.describe_instance_information(
         InstanceInformationFilterList=[
             {"key": "InstanceIds", "valueSet": [instance_id]}
         ]
@@ -63,23 +63,42 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
 
     TRACE_NAME = "ec2_sandbox_environment"
 
+    _session: ClassVar[boto3.Session | None] = None
+
+    @classmethod
+    def set_session(cls, session: boto3.Session) -> None:
+        """Set the boto3 session used for all AWS operations.
+
+        Call this before running any evals to supply explicit credentials.
+        If not called, a default ``boto3.Session()`` is used.
+        """
+        cls._session = session
+
+    @classmethod
+    def _get_session(cls) -> boto3.Session:
+        if cls._session is None:
+            cls._session = boto3.Session()
+        return cls._session
+
     def __init__(self, config: Ec2SandboxEnvironmentConfig, instance_id: str):
         self.config = config
         self.instance_id = instance_id
-        self.ssm_client = boto3.client("ssm", region_name=config.region)
-        self.s3_client = boto3.client(
+        session = self._get_session()
+        self.ssm_client = session.client("ssm", region_name=config.region)
+        self.s3_client = session.client(
             "s3",
             region_name=config.region,
             endpoint_url=f"https://s3.{config.region}.amazonaws.com",
         )
-        self.ec2_client = boto3.client("ec2", region_name=config.region)
+        self.ec2_client = session.client("ec2", region_name=config.region)
 
     @classmethod
     @override
     async def task_init(
         cls, task_name: str, config: SandboxEnvironmentConfigType | None
     ) -> None:
-        return None
+        # Ensure the session is initialised before any samples run.
+        cls._get_session()
 
     @classmethod
     @override
@@ -90,11 +109,14 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
         metadata: dict[str, str],
     ) -> dict[str, SandboxEnvironment]:
         if config is None:
-            config = Ec2SandboxEnvironmentConfig.from_settings()
+            config = Ec2SandboxEnvironmentConfig.from_settings(
+                session=cls._get_session()
+            )
         if not isinstance(config, Ec2SandboxEnvironmentConfig):
             raise ValueError("config must be a Ec2SandboxEnvironmentConfig")
 
-        ec2_client = boto3.client("ec2", region_name=config.region)
+        session = cls._get_session()
+        ec2_client = session.client("ec2", region_name=config.region)
 
         specified_tags = config.extra_tags
         tags = list(specified_tags)
@@ -121,7 +143,7 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
 
         environment = Ec2SandboxEnvironment(config, instance["InstanceId"])
 
-        _wait_for_ssm(environment.instance_id, config.region)
+        _wait_for_ssm(environment.instance_id, environment.ssm_client)
 
         return {"default": environment}
 
@@ -137,9 +159,7 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
         if not interrupted:
             for env in environments.values():
                 if isinstance(env, Ec2SandboxEnvironment):
-                    env.ec2_client.terminate_instances(
-                        InstanceIds=[env.instance_id]
-                    )
+                    env.ec2_client.terminate_instances(InstanceIds=[env.instance_id])
         return None
 
     @classmethod
@@ -195,7 +215,7 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
     @override
     async def cli_cleanup(cls, id: str | None) -> None:
         if id is None:
-            ec2 = boto3.client("ec2")
+            ec2 = cls._get_session().client("ec2")
             response = ec2.describe_instances(
                 Filters=[
                     {
