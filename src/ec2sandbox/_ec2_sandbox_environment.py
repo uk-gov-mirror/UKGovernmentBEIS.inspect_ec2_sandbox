@@ -255,26 +255,36 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
         timeout: int | None = None,
         timeout_retry: bool = True,
     ) -> ExecResult[str]:
-        if user is not None:
-            self.logger.warning("User parameter not supported by EC2 sandbox")
+        inner: list[str] = []
 
-        commands = []
-
-        commands.extend(
+        inner.extend(
             [f"export {shlex.quote(k)}={shlex.quote(v)}" for k, v in env.items()]
         )
 
         if cwd is not None:
-            commands.append(f"cd {shlex.quote(cwd)}")
+            inner.append(f"cd {shlex.quote(cwd)}")
 
         if input is None:
-            commands.append(shlex.join(cmd))
+            inner.append(shlex.join(cmd))
         else:
             input_bytes = input.encode("utf-8") if isinstance(input, str) else input
             input_b64 = base64.b64encode(input_bytes).decode("ascii")
-            commands.append(
+            inner.append(
                 f"printf %s {shlex.quote(input_b64)} | base64 -d | {shlex.join(cmd)}"
             )
+
+        if user is None:
+            commands = inner
+        else:
+            # Run the inner script as `user`. A heredoc with a quoted marker
+            # avoids having to re-quote the whole script for `su -c`.
+            heredoc_suffix = "".join(random.choices(string.ascii_uppercase, k=8))
+            heredoc = f"EOF_EC2SB_{heredoc_suffix}"
+            commands = [
+                f"su -l {shlex.quote(user)} -s /bin/bash << '{heredoc}'",
+                *inner,
+                heredoc,
+            ]
 
         params: dict[str, Any] = {
             "commands": commands,
