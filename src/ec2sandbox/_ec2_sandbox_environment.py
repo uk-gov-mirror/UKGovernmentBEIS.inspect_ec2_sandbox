@@ -1,3 +1,4 @@
+import base64
 import errno
 import os
 import random
@@ -254,9 +255,6 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
         timeout: int | None = None,
         timeout_retry: bool = True,
     ) -> ExecResult[str]:
-        if input is not None:
-            self.logger.warning("Input parameter not supported by EC2 sandbox")
-
         if user is not None:
             self.logger.warning("User parameter not supported by EC2 sandbox")
 
@@ -269,7 +267,14 @@ class Ec2SandboxEnvironment(SandboxEnvironment):
         if cwd is not None:
             commands.append(f"cd {shlex.quote(cwd)}")
 
-        commands.append(shlex.join(cmd))
+        if input is None:
+            commands.append(shlex.join(cmd))
+        else:
+            input_bytes = input.encode("utf-8") if isinstance(input, str) else input
+            input_b64 = base64.b64encode(input_bytes).decode("ascii")
+            commands.append(
+                f"printf %s {shlex.quote(input_b64)} | base64 -d | {shlex.join(cmd)}"
+            )
 
         params: dict[str, Any] = {
             "commands": commands,
