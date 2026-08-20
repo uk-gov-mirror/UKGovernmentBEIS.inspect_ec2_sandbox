@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2026-08-20 0.1.1
 
 - EC2 sandbox logs now appear in the `.eval` transcript at the default log level.
 - `AWS_REGION` ignored for boto compatibility; use `AWS_DEFAULT_REGION` or `INSPECT_EC2_SANDBOX_REGION`

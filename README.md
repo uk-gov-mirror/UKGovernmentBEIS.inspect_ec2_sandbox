@@ -10,18 +10,18 @@ as sandboxes, running within AWS EC2.
 Add this using [uv](https://github.com/astral-sh/uv)
 
 ```
-uv add git+ssh://git@github.com/UKGovernmentBEIS/inspect_ec2_sandbox.git
-``` 
-or in [Poetry](https://python-poetry.org/),
+uv add inspect-ec2-sandbox
+```
+or with pip,
 
 ```
-poetry add git+ssh://git@github.com/UKGovernmentBEIS/inspect_ec2_sandbox.git
+pip install inspect-ec2-sandbox
 ```
 
 
 ## AWS Infrastructure
 
-This plugin depends on certain infrastructure existing already. See the [infra docs](infra/README.md) for a
+This plugin depends on certain infrastructure existing already. See the [infra docs](https://github.com/UKGovernmentBEIS/inspect_ec2_sandbox/blob/main/infra/README.md) for a
 reference CDK stack which you can use to create it. If you use the reference stack, you can skip reading
 the rest of this section.
 
@@ -132,7 +132,7 @@ sandbox = SandboxEnvironmentSpec(
 )
 ```
 
-See [schema.py](src/ec2sandbox/schema.py) for details.
+See [schema.py](https://github.com/UKGovernmentBEIS/inspect_ec2_sandbox/blob/main/src/ec2sandbox/schema.py) for details.
 
 ## Compatibility with existing Inspect evals
 
@@ -143,7 +143,7 @@ It is not a drop-in replacement; passing `--sandbox ec2` is unlikely to work for
 
 ## Sample evaluation
 
-You can look at an existing [sample eval](src/ec2sandbox/examples/where_am_i.py) for how to get started.
+You can look at an existing [sample eval](https://github.com/UKGovernmentBEIS/inspect_ec2_sandbox/blob/main/src/ec2sandbox/examples/where_am_i.py) for how to get started.
 
 A more complex eval is [Sandbox Escape Bench](https://github.com/UKGovernmentBEIS/sandbox_escape_bench), where this EC2 sandbox is used as an outer sandbox and the agent is tasked with escaping an inner sandbox, generally Docker or Kubernetes.
 
@@ -163,4 +163,4 @@ For the EC2 sandbox specifically, beware that the IAM role used by the sandbox E
 
 ## Developing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/UKGovernmentBEIS/inspect_ec2_sandbox/blob/main/CONTRIBUTING.md)

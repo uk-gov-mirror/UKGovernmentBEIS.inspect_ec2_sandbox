@@ -3,6 +3,7 @@ name = "inspect-ec2-sandbox"
 version = "0.1.1"
 description = "An EC2 Sandbox Environment for Inspect"
 readme = "README.md"
+license = "MIT"
 authors = [
     {name = "UK AI Security Institute"}
 ]
@@ -19,6 +20,10 @@ dependencies = [
     "websocket-client>=1.8.0",
     "pydantic-settings>=2.14.2",
 ]
+
+[project.urls]
+Repository = "https://github.com/UKGovernmentBEIS/inspect_ec2_sandbox"
+Changelog = "https://github.com/UKGovernmentBEIS/inspect_ec2_sandbox/blob/main/CHANGELOG.md"
 
 [project.entry-points."inspect_ai"]
 "ec2-sandbox" = "ec2sandbox._ec2_sandbox_environment"
@@ -41,8 +46,10 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/ec2sandbox"]
 
-[tool.hatch.metadata]
-allow-direct-references = true
+# Keep infra/ (contains environment-specific CDK context), tests/ and uv.lock
+# out of the published sdist
+[tool.hatch.build.targets.sdist]
+only-include = ["src", "README.md", "CHANGELOG.md", "LICENSE"]
 
 [tool.ruff]
 target-version = "py310"

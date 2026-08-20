@@ -68,3 +68,19 @@ manually:
 ```bash
 mypy
 ```
+
+## Releasing
+
+Releases are published manually using uv's standard
+[build](https://docs.astral.sh/uv/guides/package/#building-your-package) and
+[publish](https://docs.astral.sh/uv/guides/package/#publishing-your-package) flow —
+this guide does not duplicate those steps.
+
+The repo-specific parts are:
+
+- Bump `version` in `pyproject.toml` and run `uv lock` to update `uv.lock`.
+- Replace the `## Unreleased` heading in `CHANGELOG.md` with `## <YYYY-MM-DD> <version>`
+  (see existing entries for the format).
+- After merging, tag the release commit `vX.Y.Z` and push the tag.
+- Before publishing, check the sdist and wheel contents (`tar -tzf` / `unzip -l` on
+  `dist/*`) — in particular that `infra/` hasn't crept into the sdist.
