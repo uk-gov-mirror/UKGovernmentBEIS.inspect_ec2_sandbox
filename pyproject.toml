@@ -2,7 +2,7 @@
 name = "inspect-ec2-sandbox"
 version = "0.1.1"
 description = "An EC2 Sandbox Environment for Inspect"
-readme = "README.md"
+dynamic = ["readme"]
 license = "MIT"
 authors = [
     {name = "UK AI Security Institute"}
@@ -40,8 +40,21 @@ markers = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
+
+# The PyPI page renders README.md without a base URL, so repo-relative links 404
+# there. Rewrite them to GitHub URLs at build time only, keeping the links in the
+# repo relative (working in editors and independent of the git host).
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+pattern = '\]\((?!https?://|#|mailto:)([^)]+)\)'
+replacement = '](https://github.com/UKGovernmentBEIS/inspect_ec2_sandbox/blob/main/\1)'
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ec2sandbox"]
