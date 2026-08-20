@@ -10,12 +10,12 @@ as sandboxes, running within AWS EC2.
 Add this using [uv](https://github.com/astral-sh/uv)
 
 ```
-uv add git+ssh://git@github.com/UKGovernmentBEIS/inspect_ec2_sandbox.git
-``` 
-or in [Poetry](https://python-poetry.org/),
+uv add inspect-ec2-sandbox
+```
+or with pip,
 
 ```
-poetry add git+ssh://git@github.com/UKGovernmentBEIS/inspect_ec2_sandbox.git
+pip install inspect-ec2-sandbox
 ```
 
 

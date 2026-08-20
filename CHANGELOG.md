@@ -1,12 +1,5 @@
 # Changelog
 
-## Unreleased
+## 2026-08-20 0.1.1
 
-- EC2 sandbox logs now appear in the `.eval` transcript at the default log level.
-- `AWS_REGION` ignored for boto compatibility; use `AWS_DEFAULT_REGION` or `INSPECT_EC2_SANDBOX_REGION`
-- custom `Ec2InstanceProvider` must drop the `region` parameter from `find_sandbox_instances()`.
-- `Ec2SandboxEnvironmentConfig.from_settings()` no longer accepts a `session` argument (use Ec2SandboxEnvironment.set_session()).
-- Custom `Ec2InstanceProvider`s are now resolved regardless of entry-point import order.
-- Interrupted samples (Ctrl-C, failed setup script) no longer leak EC2 instances.
-- Failed instance creation (cloud-init / SSM timeout) no longer leaks the instance.
-- remove --fail-with-body from curl to support older versions
+- First release published to PyPI. For earlier changes, see the git history.
